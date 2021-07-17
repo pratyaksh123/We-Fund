@@ -51,6 +51,7 @@ export default function useContractReader(contracts, contractName, functionName,
           console.log("contractName", contractName, "functionName", functionName, "args", args, "RESULT:", newValue);
       } else {
         newValue = await contracts[contractName][functionName]();
+        setTried(true)
       }
       if (formatter && typeof formatter === "function") {
         newValue = formatter(newValue);

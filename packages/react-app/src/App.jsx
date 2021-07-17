@@ -1,26 +1,23 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
-import { Alert, Button, Col, Menu, Row } from "antd";
+import { Alert, Button, Menu } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
-import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
+import { Account, Contract, Header, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
   useBalance,
   useContractLoader,
   useContractReader,
-  useEventListener,
   useExchangePrice,
   useGasPrice,
-  useOnBlock,
   useUserSigner,
 } from "./hooks";
-// import Hints from "./Hints";
-import { ExampleUI, Hints, Subgraph } from "./views";
+import Project from "./views/Project";
 
 const { ethers } = require("ethers");
 const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
@@ -31,11 +28,7 @@ const NETWORKCHECK = true;
 
 // 🛰 providers
 if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
-// const mainnetProvider = getDefaultProvider("mainnet", { infura: INFURA_ID, etherscan: ETHERSCAN_KEY, quorum: 1 });
-// const mainnetProvider = new InfuraProvider("mainnet",INFURA_ID);
-//
-// attempt to connect to our own scaffold eth rpc and if that fails fall back to infura...
-// Using StaticJsonRpcProvider as the chainId won't change see https://github.com/ethers-io/ethers.js/issues/901
+
 const scaffoldEthProvider = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
   : null;
@@ -103,7 +96,7 @@ const logoutOfWeb3Modal = async () => {
   }, 1);
 };
 
-function App(props) {
+function App() {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
 
   const [injectedProvider, setInjectedProvider] = useState();
@@ -151,26 +144,10 @@ function App(props) {
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
   const writeContracts = useContractLoader(userSigner, { chainId: localChainId });
 
-  // EXTERNAL CONTRACT EXAMPLE:
-  //
-  // If you want to bring in the mainnet DAI contract it would look like:
-  const mainnetContracts = useContractLoader(mainnetProvider);
-
-  // If you want to call a function on a new block
-  useOnBlock(localProvider, () => {
-    console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
-  });
-
-  // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
-    "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
-
-  // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, "YourContract", "purpose");
-
   // 📟 Listen for broadcast events
-  const setPurposeEvents = useEventListener(readContracts, "YourContract", "SetPurpose", localProvider, 1);
+  // const projectsList = useEventListener(readContracts, "CrowdFunding", "NewProjectCreated", localProvider);
+
+  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects", localProvider);
 
   let networkDisplay = "";
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
@@ -272,14 +249,12 @@ function App(props) {
   }, [setRoute]);
 
   let faucetHint = "";
-  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
-
   const [faucetClicked, setFaucetClicked] = useState(false);
   if (
     !faucetClicked &&
     localProvider &&
     localProvider._network &&
-    localProvider._network.chainId === 31337 &&
+    localProvider._network.chainId === 1337 &&
     yourLocalBalance &&
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
@@ -317,37 +292,41 @@ function App(props) {
               Ongoing
             </Link>
           </Menu.Item>
-          <Menu.Item key="/Completed">
+          <Menu.Item key="/Debug">
             <Link
               onClick={() => {
-                setRoute("/Completed");
+                setRoute("/DebugContracts");
               }}
-              to="/Completed"
+              to="/DebugContracts"
             >
-              Completed
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/expired">
-            <Link
-              onClick={() => {
-                setRoute("/expired");
-              }}
-              to="/expired"
-            >
-              Expired
+              Debug Contracts
             </Link>
           </Menu.Item>
         </Menu>
 
         <Switch>
-          <Route exact path="/">
+          <Route exact path="/DebugContracts">
             <Contract
-              name="YourContract"
+              name="CrowdFunding"
               signer={userSigner}
               provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
+          </Route>
+          <Route exact path="/">
+            <div className="card">
+              {projectsList &&
+                projectsList.map(project => (
+                  <Project
+                    parentDefinedState={0}
+                    userSigner={userSigner}
+                    localProvider={localProvider}
+                    key={project}
+                    address={project}
+                  />
+                ))}
+            </div>
           </Route>
         </Switch>
       </BrowserRouter>
