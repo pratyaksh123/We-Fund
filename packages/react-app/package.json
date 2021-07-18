@@ -34,6 +34,8 @@
     "dotenv": "^8.2.0",
     "eth-hooks": "^1.1.2",
     "ethers": "^5.3.0",
+    "formik": "^2.2.9",
+    "formik-antd": "^2.0.1",
     "graphiql": "^1.0.5",
     "graphql": "^15.3.0",
     "humanize-duration": "^3.27.0",
@@ -51,7 +53,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.3",
     "walletlink": "^2.1.5",
-    "web3modal": "^1.9.1"
+    "web3modal": "^1.9.1",
+    "yup": "^0.32.9"
   },
   "devDependencies": {
     "@testing-library/dom": "^6.12.2",

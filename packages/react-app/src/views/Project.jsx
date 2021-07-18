@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useContractLoader, useContractReader, useBalance } from "../hooks";
 import { Account } from "../components";
-
 import "./Project.css";
-
-import { Card, Progress, Result, Button } from "antd";
+import { Card, Progress, Typography } from "antd";
 import { EditOutlined, EllipsisOutlined, SettingOutlined, CheckCircleTwoTone } from "@ant-design/icons";
 import Countdown from "react-countdown";
 import { ERC20ABI } from "../contracts/external_contracts";
@@ -58,7 +56,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   const fund = value => {
     writeContract.Project.contribute({ value: parseEther(value.toString()) });
   };
-  // console.log({ title, description, goal, deadline, state, creator, contractBalance });
+  console.log({ title, description, goal, deadline, state, creator, contractBalance });
   useEffect(() => {
     if (
       readContract !== undefined &&
@@ -86,34 +84,41 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
         actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
       >
         <Meta title={title} description={description} />
-        {deadline && state && state === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
+        {deadline && state === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
         {creator && <Account address={creator} localProvider={localProvider} />}
-        {goal && state && state === 0 && (
-          <Progress
-            status="active"
-            percent={
-              parseFloat(parseInt(utils.formatEther(contractBalance)) / parseInt(utils.formatEther(goal))).toFixed(2) *
-              100
-            }
-          />
+        {goal && (
+          <Typography.Title level={3}>
+            {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
+            {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
+          </Typography.Title>
         )}
-        {state && state === 1 && <p>Expired!</p>}
-        {state && state === 2 && (
+        {goal && state === 0 && (
+          <>
+            <Typography.Title level={4}></Typography.Title>
+
+            <Progress
+              status="active"
+              showInfo={true}
+              percent={
+                parseFloat(
+                  parseFloat(utils.formatEther(contractBalance)) / parseFloat(utils.formatEther(goal)),
+                ).toFixed(2) * 100
+              }
+            />
+          </>
+        )}
+        {state === 1 && <p>Expired!</p>}
+        {state === 2 && (
           <p>
             <CheckCircleTwoTone /> Project Funded Successfully
           </p>
         )}
-        {state && state === 0 && (
+        {state === 0 && (
           <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
         )}
       </Card>
     </>
   );
-};
-
-const gridStyle = {
-  width: "80%",
-  textAlign: "center",
 };
 
 export default Project;

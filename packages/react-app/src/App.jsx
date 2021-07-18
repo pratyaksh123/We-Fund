@@ -1,10 +1,13 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
-import { Alert, Button, Menu } from "antd";
+import { Alert, Button, Menu, Modal, Divider, Space } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
+import { SubmitButton, Input, InputNumber, ResetButton, FormikDebug, Form, FormItem } from "formik-antd";
+import * as Yup from "yup";
+import { Formik } from "formik";
 import "./App.css";
 import { Account, Contract, Header, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
@@ -95,7 +98,7 @@ const logoutOfWeb3Modal = async () => {
 
 function App() {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
@@ -273,6 +276,16 @@ function App() {
     );
   }
 
+  const startNewProject = ({ goal, title, duration, description }) => {
+    const goalInWei = ethers.utils.parseEther(goal.toString());
+    const response = writeContracts.CrowdFunding.createNewProject(goalInWei, title, description, duration);
+    console.log(response);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
   return (
     <div className="App">
       <Header />
@@ -312,6 +325,66 @@ function App() {
             />
           </Route>
           <Route exact path="/">
+            <Button
+              type="primary"
+              onClick={() => {
+                setIsModalVisible(true);
+              }}
+            >
+              Start new Project
+            </Button>
+            <Modal title="New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
+              <Formik
+                initialValues={{ title: "", duration: 1, description: "", goal: "" }}
+                validationSchema={Yup.object({
+                  title: Yup.string()
+                    .required()
+                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  duration: Yup.number().required().min(1),
+                  description: Yup.string()
+                    .required()
+                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  goal: Yup.number().required().positive(),
+                })}
+                onSubmit={(values, actions) => {
+                  startNewProject(values);
+                  actions.setSubmitting(false);
+                  actions.resetForm();
+                }}
+                render={() => (
+                  <Form id="fooId">
+                    <Form.Item required={true} name="title" label="Project Name" rules={[{ type: "string" }]}>
+                      <Input name="title" placeholder="Project Name" />
+                    </Form.Item>
+                    <FormItem
+                      validate="required"
+                      required={true}
+                      name="description"
+                      label="Project description"
+                      rules={[{ type: "string" }]}
+                    >
+                      <Input name="description" placeholder="Project description" />
+                    </FormItem>
+                    <FormItem
+                      required={true}
+                      name="duration"
+                      label="Duration in days"
+                      rules={[{ type: "number", min: 1 }]}
+                    >
+                      <InputNumber name="duration" placeholder="Duration in Days" />
+                    </FormItem>
+                    <FormItem required={true} name="goal" label="Amount (in ETH)" rules={[{ type: "number", min: 0 }]}>
+                      <InputNumber name="goal" placeholder="Amount to raise (in ETH)" />
+                    </FormItem>
+                    <Divider />
+                    <Space>
+                      <SubmitButton style={{ marginRight: "1rem" }}>Submit</SubmitButton>
+                      <ResetButton>Reset</ResetButton>
+                    </Space>
+                  </Form>
+                )}
+              />
+            </Modal>
             <div className="card">
               {projectsList &&
                 projectsList.map(project => (
