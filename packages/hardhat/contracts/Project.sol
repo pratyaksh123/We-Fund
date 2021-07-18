@@ -60,9 +60,6 @@ contract Project is Ownable {
     }
   }
 
-    fallback() external payable  {}
-    receive() external payable {}
-
   function payCreator() internal inState(State.Completed) returns(bool) {
     address payable creator = payable(owner());
     uint balance = address(this).balance;

@@ -1,28 +1,22 @@
-import React, { useState } from "react";
-import {
-  useContractLoader,
-  useContractReader,
-  useEventListener,
-  useBalance,
-  useUserSigner,
-  useGasPrice,
-} from "../hooks";
-import { Account, Balance } from "../components";
+import React, { useState, useEffect } from "react";
+import { useContractLoader, useContractReader, useBalance } from "../hooks";
+import { Account } from "../components";
 
 import "./Project.css";
 
-import { Card } from "antd";
-import { EditOutlined, EllipsisOutlined, SettingOutlined } from "@ant-design/icons";
+import { Card, Progress, Result, Button } from "antd";
+import { EditOutlined, EllipsisOutlined, SettingOutlined, CheckCircleTwoTone } from "@ant-design/icons";
 import Countdown from "react-countdown";
 import { ERC20ABI } from "../contracts/external_contracts";
 import { Input } from "antd";
-import { Transactor } from "../helpers";
-import { formatEther, parseEther } from "@ethersproject/units";
+import { utils } from "ethers";
+import { parseEther } from "@ethersproject/units";
 
 const { Search } = Input;
 const { Meta } = Card;
 
 const Project = ({ address, localProvider, parentDefinedState, userSigner }) => {
+  const [loading, setLoading] = useState(false);
   const contract_defination = {
     1337: {
       contracts: {
@@ -42,14 +36,11 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   const deadline = useContractReader(readContract, "Project", "deadline");
   const state = useContractReader(readContract, "Project", "state");
   const creator = useContractReader(readContract, "Project", "owner");
-  const stakerContractBalance = useBalance(localProvider, readContract && readContract.Project.address);
-  const event1 = useEventListener(readContract, "Project", "ProjectCompleted");
-  const event2 = useEventListener(readContract, "Project", "FundingRecieved");
-
-  console.log(event1, event2);
+  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
+  // const event1 = useEventListener(readContract, "Project", "ProjectCompleted");
+  // const event2 = useEventListener(readContract, "Project", "FundingRecieved");
 
   const Completionist = () => <span>You are good to go!</span>;
-
   const renderer = ({ hours, minutes, seconds, completed, days }) => {
     if (completed) {
       // Render a completed state
@@ -64,26 +55,57 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
     }
   };
 
-  const onSearch = value => {
+  const fund = value => {
     writeContract.Project.contribute({ value: parseEther(value.toString()) });
   };
+  // console.log({ title, description, goal, deadline, state, creator, contractBalance });
+  useEffect(() => {
+    if (
+      readContract !== undefined &&
+      writeContract !== undefined &&
+      title !== undefined &&
+      description !== undefined &&
+      goal !== undefined &&
+      deadline !== undefined &&
+      state !== undefined &&
+      creator !== undefined &&
+      contractBalance !== undefined
+    ) {
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [readContract, writeContract, title, description, goal, deadline, state, creator, contractBalance]);
 
   return (
     <>
       <Card
+        loading={loading}
         className="project-card"
         hoverable={true}
         actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
       >
         <Meta title={title} description={description} />
-        {deadline && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
+        {deadline && state && state === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
         {creator && <Account address={creator} localProvider={localProvider} />}
-        {goal && (
+        {goal && state && state === 0 && (
+          <Progress
+            status="active"
+            percent={
+              parseFloat(parseInt(utils.formatEther(contractBalance)) / parseInt(utils.formatEther(goal))).toFixed(2) *
+              100
+            }
+          />
+        )}
+        {state && state === 1 && <p>Expired!</p>}
+        {state && state === 2 && (
           <p>
-            {<Balance balance={stakerContractBalance} fontSize={64} />}/{<Balance balance={goal} fontSize={64} />}
+            <CheckCircleTwoTone /> Project Funded Successfully
           </p>
         )}
-        <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={onSearch} />
+        {state && state === 0 && (
+          <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
+        )}
       </Card>
     </>
   );

@@ -26,9 +26,6 @@ const targetNetwork = NETWORKS.localhost; // <------- select your target fronten
 const DEBUG = false;
 const NETWORKCHECK = true;
 
-// 🛰 providers
-if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
-
 const scaffoldEthProvider = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
   : null;
