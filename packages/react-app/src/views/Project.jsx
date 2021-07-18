@@ -56,7 +56,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   const fund = value => {
     writeContract.Project.contribute({ value: parseEther(value.toString()) });
   };
-  console.log({ title, description, goal, deadline, state, creator, contractBalance });
+  // console.log({ title, description, goal, deadline, state, creator, contractBalance });
   useEffect(() => {
     if (
       readContract !== undefined &&
@@ -86,7 +86,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
         <Meta title={title} description={description} />
         {deadline && state === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
         {creator && <Account address={creator} localProvider={localProvider} />}
-        {goal && (
+        {goal && state === 0 && (
           <Typography.Title level={3}>
             {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
             {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
