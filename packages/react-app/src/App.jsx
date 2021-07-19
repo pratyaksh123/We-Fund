@@ -326,6 +326,7 @@ function App() {
           </Route>
           <Route exact path="/">
             <Button
+              className="newProjectButton"
               type="primary"
               onClick={() => {
                 setIsModalVisible(true);

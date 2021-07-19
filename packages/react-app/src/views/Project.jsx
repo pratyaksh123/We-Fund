@@ -3,7 +3,13 @@ import { useContractLoader, useContractReader, useBalance } from "../hooks";
 import { Account } from "../components";
 import "./Project.css";
 import { Card, Progress, Typography } from "antd";
-import { EditOutlined, EllipsisOutlined, SettingOutlined, CheckCircleTwoTone } from "@ant-design/icons";
+import {
+  EditOutlined,
+  EllipsisOutlined,
+  SettingOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import Countdown from "react-countdown";
 import { ERC20ABI } from "../contracts/external_contracts";
 import { Input } from "antd";
@@ -38,11 +44,21 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   // const event1 = useEventListener(readContract, "Project", "ProjectCompleted");
   // const event2 = useEventListener(readContract, "Project", "FundingRecieved");
 
-  const Completionist = () => <span>You are good to go!</span>;
+  const ProjectExpiredCompoenent = () => {
+    return (
+      <Typography.Text type="danger">
+        <span>
+          <ExclamationCircleOutlined /> Project Expired
+        </span>
+      </Typography.Text>
+    );
+  };
   const renderer = ({ hours, minutes, seconds, completed, days }) => {
     if (completed) {
       // Render a completed state
-      return <Completionist />;
+      if (state !== 1) {
+        return <ProjectExpiredCompoenent />;
+      }
     } else {
       // Render a countdown
       return (
@@ -76,10 +92,10 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   }, [readContract, writeContract, title, description, goal, deadline, state, creator, contractBalance]);
 
   return (
-    <>
+    <div className="project-card">
       <Card
+        bordered={true}
         loading={loading}
-        className="project-card"
         hoverable={true}
         actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
       >
@@ -94,8 +110,6 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
         )}
         {goal && state === 0 && (
           <>
-            <Typography.Title level={4}></Typography.Title>
-
             <Progress
               status="active"
               showInfo={true}
@@ -107,17 +121,17 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
             />
           </>
         )}
-        {state === 1 && <p>Expired!</p>}
+        {state === 1 && <ProjectExpiredCompoenent />}
         {state === 2 && (
-          <p>
-            <CheckCircleTwoTone /> Project Funded Successfully
-          </p>
+          <Typography.Text type="success">
+            <CheckCircleOutlined /> Project Funded Successfully
+          </Typography.Text>
         )}
         {state === 0 && (
           <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
         )}
       </Card>
-    </>
+    </div>
   );
 };
 
