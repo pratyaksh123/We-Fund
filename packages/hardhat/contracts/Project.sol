@@ -73,19 +73,19 @@ contract Project is Ownable {
   function balanceOf()public view returns(uint){
     return address(this).balance;
   }
-  
-  function refund() public inState(State.Expired) returns(bool) {
-    require(contributors[msg.sender] > 0);
 
+  function fetchContributors(address _contributor) public view returns(uint){
+    return contributors[_contributor];
+  }
+  
+  function refund() public inState(State.Expired) {
+    require(contributors[msg.sender] > 0);
     uint amountToRefund = contributors[msg.sender];
     contributors[msg.sender] = 0;
-
     if(payable(msg.sender).send(amountToRefund)){
       emit FundingRefunded(msg.sender, amountToRefund, address(this).balance);
-      return true;
     }else{
       contributors[msg.sender] = amountToRefund;
-      return false;
     }
   }
 

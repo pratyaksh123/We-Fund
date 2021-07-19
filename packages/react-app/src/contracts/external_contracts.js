@@ -163,10 +163,6 @@ export const ERC20ABI = [
     "type": "event"
   },
   {
-    "stateMutability": "payable",
-    "type": "fallback"
-  },
-  {
     "inputs": [],
     "name": "balanceOf",
     "outputs": [
@@ -226,6 +222,25 @@ export const ERC20ABI = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_contributor",
+        "type": "address"
+      }
+    ],
+    "name": "fetchContributors",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "goal",
     "outputs": [
@@ -261,13 +276,7 @@ export const ERC20ABI = [
   {
     "inputs": [],
     "name": "refund",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -316,9 +325,5 @@ export const ERC20ABI = [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ]

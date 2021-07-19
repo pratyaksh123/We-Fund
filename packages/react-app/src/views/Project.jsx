@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useContractLoader, useContractReader, useBalance } from "../hooks";
 import { Account } from "../components";
 import "./Project.css";
-import { Card, Progress, Typography } from "antd";
+import { Card, Progress, Typography, Button, Modal } from "antd";
 import {
   EditOutlined,
   EllipsisOutlined,
@@ -19,8 +19,9 @@ import { parseEther } from "@ethersproject/units";
 const { Search } = Input;
 const { Meta } = Card;
 
-const Project = ({ address, localProvider, parentDefinedState, userSigner }) => {
+const Project = ({ address, localProvider, parentDefinedState, userSigner, userAddress }) => {
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
   const contract_defination = {
     1337: {
       contracts: {
@@ -39,12 +40,15 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   const goal = useContractReader(readContract, "Project", "goal");
   const deadline = useContractReader(readContract, "Project", "deadline");
   const state = useContractReader(readContract, "Project", "state");
+  const [localState, setLocalState] = useState(state);
   const creator = useContractReader(readContract, "Project", "owner");
   const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
+  const contributorBalance = useContractReader(readContract, "Project", "fetchContributors", [userAddress]);
   // const event1 = useEventListener(readContract, "Project", "ProjectCompleted");
   // const event2 = useEventListener(readContract, "Project", "FundingRecieved");
+  // console.log({ event2 });
 
-  const ProjectExpiredCompoenent = () => {
+  const ProjectExpiredComponent = () => {
     return (
       <Typography.Text type="danger">
         <span>
@@ -56,8 +60,9 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
   const renderer = ({ hours, minutes, seconds, completed, days }) => {
     if (completed) {
       // Render a completed state
+      setLocalState(1);
       if (state !== 1) {
-        return <ProjectExpiredCompoenent />;
+        return <ProjectExpiredComponent />;
       }
     } else {
       // Render a countdown
@@ -85,11 +90,20 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
       creator !== undefined &&
       contractBalance !== undefined
     ) {
+      setLocalState(state);
       setLoading(false);
     } else {
       setLoading(true);
     }
   }, [readContract, writeContract, title, description, goal, deadline, state, creator, contractBalance]);
+
+  const handleCancel = () => {
+    setModalVisible(false);
+  };
+
+  const handleRefund = () => {
+    writeContract.Project.refund();
+  };
 
   return (
     <div className="project-card">
@@ -100,15 +114,15 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
         actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
       >
         <Meta title={title} description={description} />
-        {deadline && state === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
+        {deadline && localState === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
         {creator && <Account address={creator} localProvider={localProvider} />}
-        {goal && state === 0 && (
+        {goal && localState === 0 && (
           <Typography.Title level={3}>
             {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
             {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
           </Typography.Title>
         )}
-        {goal && state === 0 && (
+        {goal && localState === 0 && (
           <>
             <Progress
               status="active"
@@ -121,15 +135,36 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner }) => 
             />
           </>
         )}
-        {state === 1 && <ProjectExpiredCompoenent />}
-        {state === 2 && (
+        {localState === 1 && (
+          <>
+            <ProjectExpiredComponent />
+            <Button
+              size="small"
+              type="link"
+              onClick={() => {
+                setModalVisible(true);
+              }}
+            >
+              Claim Refund ( For Contributors )
+            </Button>
+          </>
+        )}
+        {localState === 2 && (
           <Typography.Text type="success">
             <CheckCircleOutlined /> Project Funded Successfully
           </Typography.Text>
         )}
-        {state === 0 && (
+        {localState === 0 && (
           <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
         )}
+        <Modal title="Claim your refund" visible={isModalVisible} footer={null} onCancel={handleCancel}>
+          Total contributed by you - {contributorBalance && <p>{utils.formatEther(contributorBalance)} ETH</p>}
+          {contributorBalance && utils.formatEther(contributorBalance) > 0 && (
+            <Button size="small" type="primary" onClick={handleRefund}>
+              Claim
+            </Button>
+          )}
+        </Modal>
       </Card>
     </div>
   );

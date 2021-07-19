@@ -394,6 +394,7 @@ function App() {
                     userSigner={userSigner}
                     localProvider={localProvider}
                     key={project}
+                    userAddress={address}
                     address={project}
                   />
                 ))}
