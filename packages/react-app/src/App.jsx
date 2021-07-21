@@ -1,5 +1,6 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
+import { useErrorBoundary } from "use-error-boundary";
 import { Alert, Button, Menu, Modal, Divider, Space } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
@@ -100,6 +101,7 @@ function App() {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [injectedProvider, setInjectedProvider] = useState();
+  const { ErrorBoundary, didCatch, error } = useErrorBoundary();
   const [address, setAddress] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
   const price = useExchangePrice(targetNetwork, mainnetProvider);
@@ -134,9 +136,6 @@ function App() {
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
   const yourLocalBalance = useBalance(localProvider, address);
-
-  // Just plug in different 🛰 providers to get your balance on different chains:
-  const yourMainnetBalance = useBalance(mainnetProvider, address);
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider);
@@ -287,139 +286,152 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Header />
-      {networkDisplay}
-      <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            >
-              Ongoing
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/Debug">
-            <Link
-              onClick={() => {
-                setRoute("/DebugContracts");
-              }}
-              to="/DebugContracts"
-            >
-              Debug Contracts
-            </Link>
-          </Menu.Item>
-        </Menu>
+    <>
+      {didCatch ? (
+        <p>An error has been caught: {error.message}</p>
+      ) : (
+        <ErrorBoundary>
+          <div className="App">
+            <Header />
+            {networkDisplay}
+            <BrowserRouter>
+              <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
+                <Menu.Item key="/">
+                  <Link
+                    onClick={() => {
+                      setRoute("/");
+                    }}
+                    to="/"
+                  >
+                    Ongoing
+                  </Link>
+                </Menu.Item>
+                <Menu.Item key="/DebugContracts">
+                  <Link
+                    onClick={() => {
+                      setRoute("/DebugContracts");
+                    }}
+                    to="/DebugContracts"
+                  >
+                    Debug Contracts
+                  </Link>
+                </Menu.Item>
+              </Menu>
 
-        <Switch>
-          <Route exact path="/DebugContracts">
-            <Contract
-              name="CrowdFunding"
-              signer={userSigner}
-              provider={localProvider}
-              address={address}
-              blockExplorer={blockExplorer}
-            />
-          </Route>
-          <Route exact path="/">
-            <Button
-              className="newProjectButton"
-              type="primary"
-              onClick={() => {
-                setIsModalVisible(true);
-              }}
-            >
-              Start new Project
-            </Button>
-            <Modal title="New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
-              <Formik
-                initialValues={{ title: "", duration: 1, description: "", goal: "" }}
-                validationSchema={Yup.object({
-                  title: Yup.string()
-                    .required()
-                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
-                  duration: Yup.number().required().min(1),
-                  description: Yup.string()
-                    .required()
-                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
-                  goal: Yup.number().required().positive(),
-                })}
-                onSubmit={(values, actions) => {
-                  startNewProject(values);
-                  actions.setSubmitting(false);
-                  actions.resetForm();
-                }}
-                render={() => (
-                  <Form id="fooId">
-                    <Form.Item required={true} name="title" label="Project Name" rules={[{ type: "string" }]}>
-                      <Input name="title" placeholder="Project Name" />
-                    </Form.Item>
-                    <FormItem
-                      validate="required"
-                      required={true}
-                      name="description"
-                      label="Project description"
-                      rules={[{ type: "string" }]}
-                    >
-                      <Input name="description" placeholder="Project description" />
-                    </FormItem>
-                    <FormItem
-                      required={true}
-                      name="duration"
-                      label="Duration in days"
-                      rules={[{ type: "number", min: 1 }]}
-                    >
-                      <InputNumber name="duration" placeholder="Duration in Days" />
-                    </FormItem>
-                    <FormItem required={true} name="goal" label="Amount (in ETH)" rules={[{ type: "number", min: 0 }]}>
-                      <InputNumber name="goal" placeholder="Amount to raise (in ETH)" />
-                    </FormItem>
-                    <Divider />
-                    <Space>
-                      <SubmitButton style={{ marginRight: "1rem" }}>Submit</SubmitButton>
-                      <ResetButton>Reset</ResetButton>
-                    </Space>
-                  </Form>
-                )}
-              />
-            </Modal>
-            <div className="card">
-              {projectsList &&
-                projectsList.map(project => (
-                  <Project
-                    parentDefinedState={0}
-                    userSigner={userSigner}
-                    localProvider={localProvider}
-                    key={project}
-                    userAddress={address}
-                    address={project}
+              <Switch>
+                <Route exact path="/DebugContracts">
+                  <Contract
+                    name="CrowdFunding"
+                    signer={userSigner}
+                    provider={localProvider}
+                    address={address}
+                    blockExplorer={blockExplorer}
                   />
-                ))}
+                </Route>
+                <Route exact path="/">
+                  <Button
+                    className="newProjectButton"
+                    type="primary"
+                    onClick={() => {
+                      setIsModalVisible(true);
+                    }}
+                  >
+                    Start new Project
+                  </Button>
+                  <Modal title="New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
+                    <Formik
+                      initialValues={{ title: "", duration: 1, description: "", goal: "" }}
+                      validationSchema={Yup.object({
+                        title: Yup.string()
+                          .required()
+                          .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                        duration: Yup.number().required().min(1),
+                        description: Yup.string()
+                          .required()
+                          .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                        goal: Yup.number().required().positive(),
+                      })}
+                      onSubmit={(values, actions) => {
+                        startNewProject(values);
+                        actions.setSubmitting(false);
+                        actions.resetForm();
+                      }}
+                      render={() => (
+                        <Form id="fooId">
+                          <Form.Item required={true} name="title" label="Project Name" rules={[{ type: "string" }]}>
+                            <Input name="title" placeholder="Project Name" />
+                          </Form.Item>
+                          <FormItem
+                            validate="required"
+                            required={true}
+                            name="description"
+                            label="Project description"
+                            rules={[{ type: "string" }]}
+                          >
+                            <Input name="description" placeholder="Project description" />
+                          </FormItem>
+                          <FormItem
+                            required={true}
+                            name="duration"
+                            label="Duration in days"
+                            rules={[{ type: "number", min: 1 }]}
+                          >
+                            <InputNumber name="duration" placeholder="Duration in Days" />
+                          </FormItem>
+                          <FormItem
+                            required={true}
+                            name="goal"
+                            label="Amount (in ETH)"
+                            rules={[{ type: "number", min: 0 }]}
+                          >
+                            <InputNumber name="goal" placeholder="Amount to raise (in ETH)" />
+                          </FormItem>
+                          <Divider />
+                          <Space>
+                            <SubmitButton style={{ marginRight: "1rem" }}>Submit</SubmitButton>
+                            <ResetButton>Reset</ResetButton>
+                          </Space>
+                        </Form>
+                      )}
+                    />
+                  </Modal>
+                  <div className="card">
+                    {projectsList &&
+                      projectsList.map(project => (
+                        <Project
+                          parentDefinedState={0}
+                          userSigner={userSigner}
+                          localProvider={localProvider}
+                          key={project}
+                          userAddress={address}
+                          address={project}
+                        />
+                      ))}
+                  </div>
+                </Route>
+              </Switch>
+            </BrowserRouter>
+
+            <ThemeSwitch />
+
+            <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
+              <Account
+                address={address}
+                localProvider={localProvider}
+                userSigner={userSigner}
+                mainnetProvider={mainnetProvider}
+                price={price}
+                web3Modal={web3Modal}
+                loadWeb3Modal={loadWeb3Modal}
+                logoutOfWeb3Modal={logoutOfWeb3Modal}
+                blockExplorer={blockExplorer}
+              />
+              {faucetHint}
             </div>
-          </Route>
-        </Switch>
-      </BrowserRouter>
-
-      <ThemeSwitch />
-
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
-        <Account
-          address={address}
-          localProvider={localProvider}
-          userSigner={userSigner}
-          mainnetProvider={mainnetProvider}
-          price={price}
-          web3Modal={web3Modal}
-          loadWeb3Modal={loadWeb3Modal}
-          logoutOfWeb3Modal={logoutOfWeb3Modal}
-          blockExplorer={blockExplorer}
-        />
-        {faucetHint}
-      </div>
-    </div>
+          </div>
+        </ErrorBoundary>
+      )}
+    </>
   );
 }
 

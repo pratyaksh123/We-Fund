@@ -75,6 +75,10 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
   };
 
   const fund = value => {
+    if (creator == userAddress) {
+      alert("You cannot fund your own project");
+      return;
+    }
     writeContract.Project.contribute({ value: parseEther(value.toString()) });
   };
   // console.log({ title, description, goal, deadline, state, creator, contractBalance });
@@ -111,19 +115,25 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
         bordered={true}
         loading={loading}
         hoverable={true}
-        actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
+        // actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
       >
         <Meta title={title} description={description} />
         {deadline && localState === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
-        {creator && <Account address={creator} localProvider={localProvider} />}
-        {goal && localState === 0 && (
-          <Typography.Title level={3}>
-            {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
-            {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
-          </Typography.Title>
+        {creator && (
+          <>
+            <br />
+            <Typography.Text>
+              Created By
+              <Account address={creator} localProvider={localProvider} />
+            </Typography.Text>
+          </>
         )}
         {goal && localState === 0 && (
           <>
+            <Typography.Title level={4}>
+              {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
+              {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
+            </Typography.Title>
             <Progress
               status="active"
               showInfo={true}
@@ -149,10 +159,13 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
             </Button>
           </>
         )}
-        {localState === 2 && (
-          <Typography.Text type="success">
-            <CheckCircleOutlined /> Project Funded Successfully
-          </Typography.Text>
+        {localState === 2 && goal && (
+          <>
+            <Typography.Text type="success">
+              <CheckCircleOutlined /> Project Funded Successfully
+            </Typography.Text>
+            <Typography.Text type="secondary">{utils.formatEther(goal)} ETH raised</Typography.Text>
+          </>
         )}
         {localState === 0 && (
           <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
