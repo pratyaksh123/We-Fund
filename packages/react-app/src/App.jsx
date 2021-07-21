@@ -1,7 +1,7 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
 import { useErrorBoundary } from "use-error-boundary";
-import { Alert, Button, Menu, Modal, Divider, Space } from "antd";
+import { Alert, Button, Menu, Modal, Divider, Space, Typography } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
@@ -24,7 +24,7 @@ import {
 import Project from "./views/Project";
 
 const { ethers } = require("ethers");
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.mumbai; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
@@ -105,7 +105,6 @@ function App() {
   const [address, setAddress] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
   const price = useExchangePrice(targetNetwork, mainnetProvider);
-
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
@@ -278,7 +277,6 @@ function App() {
   const startNewProject = ({ goal, title, duration, description }) => {
     const goalInWei = ethers.utils.parseEther(goal.toString());
     const response = writeContracts.CrowdFunding.createNewProject(goalInWei, title, description, duration);
-    console.log(response);
   };
 
   const handleCancel = () => {
@@ -288,7 +286,9 @@ function App() {
   return (
     <>
       {didCatch ? (
-        <p>An error has been caught: {error.message}</p>
+        <Typography.Title type="danger" level={5}>
+          An error has been caught: {error.message}
+        </Typography.Title>
       ) : (
         <ErrorBoundary>
           <div className="App">
@@ -381,10 +381,10 @@ function App() {
                           <FormItem
                             required={true}
                             name="goal"
-                            label="Amount (in ETH)"
+                            label="Amount (in USD)"
                             rules={[{ type: "number", min: 0 }]}
                           >
-                            <InputNumber name="goal" placeholder="Amount to raise (in ETH)" />
+                            <InputNumber name="goal" placeholder="Amount to raise (in USD)" />
                           </FormItem>
                           <Divider />
                           <Space>
@@ -399,6 +399,7 @@ function App() {
                     {projectsList &&
                       projectsList.map(project => (
                         <Project
+                          price={price}
                           parentDefinedState={0}
                           userSigner={userSigner}
                           localProvider={localProvider}

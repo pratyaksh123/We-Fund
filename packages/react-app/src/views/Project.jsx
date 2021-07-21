@@ -3,27 +3,21 @@ import { useContractLoader, useContractReader, useBalance } from "../hooks";
 import { Account } from "../components";
 import "./Project.css";
 import { Card, Progress, Typography, Button, Modal } from "antd";
-import {
-  EditOutlined,
-  EllipsisOutlined,
-  SettingOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
-} from "@ant-design/icons";
+import { CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import Countdown from "react-countdown";
 import { ERC20ABI } from "../contracts/external_contracts";
 import { Input } from "antd";
 import { utils } from "ethers";
 import { parseEther } from "@ethersproject/units";
-
+import { NETWORKS } from "../constants";
 const { Search } = Input;
 const { Meta } = Card;
 
-const Project = ({ address, localProvider, parentDefinedState, userSigner, userAddress }) => {
+const Project = ({ address, localProvider, parentDefinedState, userSigner, userAddress, price }) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const contract_defination = {
-    1337: {
+    80001: {
       contracts: {
         Project: {
           address: address,
@@ -44,9 +38,6 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
   const creator = useContractReader(readContract, "Project", "owner");
   const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
   const contributorBalance = useContractReader(readContract, "Project", "fetchContributors", [userAddress]);
-  // const event1 = useEventListener(readContract, "Project", "ProjectCompleted");
-  // const event2 = useEventListener(readContract, "Project", "FundingRecieved");
-  // console.log({ event2 });
 
   const ProjectExpiredComponent = () => {
     return (
@@ -79,7 +70,8 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
       alert("You cannot fund your own project");
       return;
     }
-    writeContract.Project.contribute({ value: parseEther(value.toString()) });
+    const formatedValue = value / price;
+    writeContract.Project.contribute({ value: parseEther(formatedValue.toString()) });
   };
   // console.log({ title, description, goal, deadline, state, creator, contractBalance });
   useEffect(() => {
@@ -111,12 +103,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
 
   return (
     <div className="project-card">
-      <Card
-        bordered={true}
-        loading={loading}
-        hoverable={true}
-        // actions={[<SettingOutlined key="setting" />, <EditOutlined key="edit" />, <EllipsisOutlined key="ellipsis" />]}
-      >
+      <Card bordered={true} loading={loading} hoverable={true}>
         <Meta title={title} description={description} />
         {deadline && localState === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
         {creator && (
@@ -124,15 +111,20 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
             <br />
             <Typography.Text>
               Created By
-              <Account address={creator} localProvider={localProvider} />
+              <Account
+                address={creator}
+                localProvider={localProvider}
+                price={price}
+                blockExplorer={NETWORKS.mumbai.blockExplorer}
+              />
             </Typography.Text>
           </>
         )}
         {goal && localState === 0 && (
           <>
             <Typography.Title level={4}>
-              {parseFloat(utils.formatEther(contractBalance)).toFixed(4)} /{" "}
-              {parseFloat(utils.formatEther(goal)).toFixed(4)} ETH Raised{" "}
+              ${parseFloat(utils.formatEther(contractBalance)).toFixed(4)} / $
+              {parseFloat(utils.formatEther(goal)).toFixed(4)} Raised{" "}
             </Typography.Title>
             <Progress
               status="active"
@@ -164,14 +156,14 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
             <Typography.Text type="success">
               <CheckCircleOutlined /> Project Funded Successfully
             </Typography.Text>
-            <Typography.Text type="secondary">{utils.formatEther(goal)} ETH raised</Typography.Text>
+            <Typography.Text type="secondary">${utils.formatEther(goal)}raised</Typography.Text>
           </>
         )}
         {localState === 0 && (
-          <Search placeholder="Input Amount in ETH" allowClear enterButton="Fund" size="small" onSearch={fund} />
+          <Search placeholder="Input Amount in USD" allowClear enterButton="Fund" size="small" onSearch={fund} />
         )}
         <Modal title="Claim your refund" visible={isModalVisible} footer={null} onCancel={handleCancel}>
-          Total contributed by you - {contributorBalance && <p>{utils.formatEther(contributorBalance)} ETH</p>}
+          Total contributed by you - {contributorBalance && <p>${utils.formatEther(contributorBalance)}</p>}
           {contributorBalance && utils.formatEther(contributorBalance) > 0 && (
             <Button size="small" type="primary" onClick={handleRefund}>
               Claim
