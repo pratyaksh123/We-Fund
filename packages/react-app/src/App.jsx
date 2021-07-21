@@ -252,7 +252,7 @@ function App() {
     !faucetClicked &&
     localProvider &&
     localProvider._network &&
-    localProvider._network.chainId === 1337 &&
+    localProvider._network.chainId === 80001 &&
     yourLocalBalance &&
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
@@ -261,10 +261,7 @@ function App() {
         <Button
           type="primary"
           onClick={() => {
-            faucetTx({
-              to: address,
-              value: ethers.utils.parseEther("0.01"),
-            });
+            window.open("https://faucet.matic.network/", "_blank");
             setFaucetClicked(true);
           }}
         >
