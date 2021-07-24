@@ -25,6 +25,10 @@ jobs:
       - name: Install packages
         run: yarn install
 
+      # Deploy contracts
+      - name: Deploy contracts
+        run: yarn deploy
+
       # Build react app
       - name: Build the app
         env:
