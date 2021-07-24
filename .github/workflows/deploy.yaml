@@ -24,7 +24,9 @@ jobs:
 
       # Build react app
       - name: Build the app
-        run: CI = false yarn run build
+        env:
+          CI: false
+        run: yarn run build
 
       # Install Surge
       - name: Install Surge
