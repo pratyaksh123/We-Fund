@@ -40,6 +40,6 @@ jobs:
         uses: dswistowski/surge-sh-action@v1
         with:
           domain: 'we-fund.surge.sh'
-          project: './build'
+          project: 'packages/react-app/build'
           login: ${{ secrets.SURGE_LOGIN }}
           token: ${{ secrets.TOKEN }}
