@@ -98,7 +98,9 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
   };
 
   const handleRefund = () => {
-    writeContract.Project.refund();
+    if (state === 0 && localState === 1) {
+      writeContract.Project.expireAndRefund();
+    }
   };
 
   return (
@@ -123,8 +125,8 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
         {goal && localState === 0 && (
           <>
             <Typography.Title level={4}>
-              ${parseFloat(utils.formatEther(contractBalance)).toFixed(4)} / $
-              {parseFloat(utils.formatEther(goal)).toFixed(4)} Raised{" "}
+              ${(parseFloat(utils.formatEther(contractBalance)) * price).toFixed(4)} / $
+              {(parseFloat(utils.formatEther(goal)) * price).toFixed(4)} Raised{" "}
             </Typography.Title>
             <Progress
               status="active"

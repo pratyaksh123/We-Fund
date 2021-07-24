@@ -272,8 +272,13 @@ function App() {
   }
 
   const startNewProject = ({ goal, title, duration, description }) => {
-    const goalInWei = ethers.utils.parseEther(goal.toString());
-    const response = writeContracts.CrowdFunding.createNewProject(goalInWei, title, description, duration);
+    const formattedGoal = goal / price;
+    writeContracts.CrowdFunding.createNewProject(
+      ethers.utils.parseEther(formattedGoal.toString()),
+      title,
+      description,
+      duration,
+    );
   };
 
   const handleCancel = () => {

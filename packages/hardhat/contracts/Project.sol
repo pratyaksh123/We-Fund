@@ -89,4 +89,9 @@ contract Project is Ownable {
     }
   }
 
+  function expireAndRefund() public inState(State.Ongoing) {
+    state = State.Expired;
+    refund();
+  }
+
 }
