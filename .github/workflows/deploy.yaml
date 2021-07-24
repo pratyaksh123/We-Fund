@@ -1,0 +1,42 @@
+name: Deploy to Surge
+on:
+  push:
+    branches: [release]
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      # Install node version 12
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+
+      # Cd into the react app directory
+      - run: cd packages/react-app
+
+      # Install npm packages
+      - name: Install packages
+        run: yarn install
+
+      # Build react app
+      - name: Build the app
+        env:
+          CI: false
+        run: yarn run build
+
+      # Install Surge
+      - name: Install Surge
+        run: yarn global add surge
+
+      # Deploy to the defined URL using the token
+      - name: Deploy to surge
+        uses: dswistowski/surge-sh-action@v1
+        with:
+          domain: 'we-fund.surge.sh'
+          project: './build'
+          login: ${{ secrets.SURGE_LOGIN }}
+          token: ${{ secrets.TOKEN }}
