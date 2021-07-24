@@ -4,6 +4,9 @@ on:
     branches: [release]
 
 jobs:
+  environment:
+    name: Production
+    url: https://we-fund.surge.sh
   Deploy:
     runs-on: ubuntu-latest
 
