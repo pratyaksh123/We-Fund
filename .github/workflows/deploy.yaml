@@ -5,6 +5,9 @@ on:
 
 jobs:
   Deploy:
+    environment:
+      name: Production
+      url: https://we-fund.surge.sh
     runs-on: ubuntu-latest
 
     steps:
