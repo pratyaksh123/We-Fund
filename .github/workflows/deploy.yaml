@@ -20,15 +20,15 @@ jobs:
 
       # Install npm packages
       - name: Install packages
-        run: npm install
+        run: yarn install
 
       # Build react app
       - name: Build the app
-        run: npm run build
+        run: yarn run build
 
       # Install Surge
       - name: Install Surge
-        run: npm install -g surge
+        run: yarn global add surge
 
       # Deploy to the defined URL using the token
       - name: Deploy to surge
