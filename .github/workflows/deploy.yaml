@@ -4,31 +4,32 @@ on:
     branches: [release]
 
 jobs:
-  runs-on: ubuntu-latest
+  Deploy:
+    runs-on: ubuntu-latest
 
-  steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-    # Install node version 12
-    - uses: actions/setup-node@v2-beta
-      with:
-        node-version: '12'
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      # Install node version 12
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
 
-    # Cd into the react app directory
-    - run: cd $GITHUB_WORKSPACE/react-app
+      # Cd into the react app directory
+      - run: cd $GITHUB_WORKSPACE/react-app
 
-    # Install npm packages
-    - name: Install packages
-      run: npm install
+      # Install npm packages
+      - name: Install packages
+        run: npm install
 
-    # Build react app
-    - name: Build the app
-      run: npm run build
+      # Build react app
+      - name: Build the app
+        run: npm run build
 
-    # Install Surge
-    - name: Install Surge
-      run: npm install -g surge
+      # Install Surge
+      - name: Install Surge
+        run: npm install -g surge
 
-    # Deploy to the defined URL using the token
-    - name: Deploy to surge
-      run: surge ./build we-fund.surge.sh --token ${{secrets.TOKEN}}
+      # Deploy to the defined URL using the token
+      - name: Deploy to surge
+        run: surge ./build we-fund.surge.sh --token ${{secrets.TOKEN}}
