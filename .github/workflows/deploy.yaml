@@ -34,4 +34,9 @@ jobs:
 
       # Deploy to the defined URL using the token
       - name: Deploy to surge
-        run: surge ./build we-fund.surge.sh --token ${{secrets.TOKEN}}
+        uses: dswistowski/surge-sh-action@v1
+        with:
+          domain: 'we-fund.surge.sh'
+          project: './build'
+          login: ${{ secrets.SURGE_LOGIN }}
+          token: ${{ secrets.TOKEN }}
