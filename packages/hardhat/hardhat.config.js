@@ -48,9 +48,6 @@ module.exports = {
   // (you will need to restart the `yarn run start` dev server after editing the .env)
 
   networks: {
-    hardhat: {
-      chainId: 1337
-    },
     localhost: {
       url: "http://localhost:8545",
       /*
