@@ -24,7 +24,7 @@ import {
 import Project from "./views/Project";
 
 const { ethers } = require("ethers");
-const targetNetwork = NETWORKS.mumbai; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.ropsten; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
@@ -252,7 +252,7 @@ function App() {
     !faucetClicked &&
     localProvider &&
     localProvider._network &&
-    localProvider._network.chainId === 80001 &&
+    localProvider._network.chainId === 3 &&
     yourLocalBalance &&
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
@@ -261,7 +261,10 @@ function App() {
         <Button
           type="primary"
           onClick={() => {
-            window.open("https://faucet.matic.network/", "_blank");
+            faucetTx({
+              to: address,
+              value: ethers.utils.parseEther("1"),
+            });
             setFaucetClicked(true);
           }}
         >
@@ -273,11 +276,13 @@ function App() {
 
   const startNewProject = ({ goal, title, duration, description }) => {
     const formattedGoal = goal / price;
-    writeContracts.CrowdFunding.createNewProject(
-      ethers.utils.parseEther(formattedGoal.toString()),
-      title,
-      description,
-      duration,
+    tx(
+      writeContracts.CrowdFunding.createNewProject(
+        ethers.utils.parseEther(formattedGoal.toString()),
+        title,
+        description,
+        duration,
+      ),
     );
   };
 
@@ -340,7 +345,7 @@ function App() {
                   >
                     Start new Project
                   </Button>
-                  <Modal title="New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
+                  <Modal title="Create New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
                     <Formik
                       initialValues={{ title: "", duration: 1, description: "", goal: "" }}
                       validationSchema={Yup.object({
@@ -357,6 +362,7 @@ function App() {
                         startNewProject(values);
                         actions.setSubmitting(false);
                         actions.resetForm();
+                        setIsModalVisible(false);
                       }}
                       render={() => (
                         <Form id="fooId">
@@ -386,7 +392,7 @@ function App() {
                             label="Amount (in USD)"
                             rules={[{ type: "number", min: 0 }]}
                           >
-                            <InputNumber name="goal" placeholder="Amount to raise (in USD)" />
+                            <InputNumber name="goal" placeholder="$" />
                           </FormItem>
                           <Divider />
                           <Space>
@@ -401,6 +407,7 @@ function App() {
                     {projectsList &&
                       projectsList.map(project => (
                         <Project
+                          tx={tx}
                           price={price}
                           parentDefinedState={0}
                           userSigner={userSigner}

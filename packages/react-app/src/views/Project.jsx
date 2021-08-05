@@ -13,11 +13,11 @@ import { NETWORKS } from "../constants";
 const { Search } = Input;
 const { Meta } = Card;
 
-const Project = ({ address, localProvider, parentDefinedState, userSigner, userAddress, price }) => {
+const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, userAddress, price }) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const contract_defination = {
-    80001: {
+    3: {
       contracts: {
         Project: {
           address: address,
@@ -26,7 +26,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
       },
     },
   };
-
+  // TODO: increate the poll time for production
   const readContract = useContractLoader(localProvider, { externalContracts: contract_defination });
   const writeContract = useContractLoader(userSigner, { externalContracts: contract_defination });
   const title = useContractReader(readContract, "Project", "title");
@@ -71,7 +71,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
       return;
     }
     const formatedValue = value / price;
-    writeContract.Project.contribute({ value: parseEther(formatedValue.toString()) });
+    tx(writeContract.Project.contribute({ value: parseEther(formatedValue.toFixed(4)) }));
   };
   // console.log({ title, description, goal, deadline, state, creator, contractBalance });
   useEffect(() => {
@@ -99,29 +99,49 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
 
   const handleRefund = () => {
     if (state === 0 && localState === 1) {
-      writeContract.Project.expireAndRefund();
+      tx(writeContract.Project.expireAndRefund());
     }
   };
 
   return (
     <div className="project-card">
-      <Card bordered={true} loading={loading} hoverable={true}>
+      <Card
+        bordered={true}
+        loading={loading}
+        hoverable={true}
+        title={
+          <div>
+            {creator && (
+              <div>
+                <Typography.Text>Contract Address</Typography.Text>
+                <Account
+                  address={address}
+                  localProvider={localProvider}
+                  price={price}
+                  blockExplorer={NETWORKS.ropsten.blockExplorer}
+                />
+              </div>
+            )}
+          </div>
+        }
+        extra={
+          <div>
+            {creator && (
+              <div>
+                <Typography.Text>Created By</Typography.Text>
+                <Account
+                  address={creator}
+                  localProvider={localProvider}
+                  price={price}
+                  blockExplorer={NETWORKS.ropsten.blockExplorer}
+                />
+              </div>
+            )}
+          </div>
+        }
+      >
         <Meta title={title} description={description} />
         {deadline && localState === 0 && <Countdown date={deadline.toNumber() * 1000} renderer={renderer} />}
-        {creator && (
-          <>
-            <br />
-            <Typography.Text>
-              Created By
-              <Account
-                address={creator}
-                localProvider={localProvider}
-                price={price}
-                blockExplorer={NETWORKS.mumbai.blockExplorer}
-              />
-            </Typography.Text>
-          </>
-        )}
         {goal && localState === 0 && (
           <>
             <Typography.Title level={4}>
@@ -158,7 +178,7 @@ const Project = ({ address, localProvider, parentDefinedState, userSigner, userA
             <Typography.Text type="success">
               <CheckCircleOutlined /> Project Funded Successfully
             </Typography.Text>
-            <Typography.Text type="secondary">${utils.formatEther(goal)}raised</Typography.Text>
+            <Typography.Text type="primary"> ${parseFloat(utils.formatEther(goal)).toFixed(4)} raised</Typography.Text>
           </>
         )}
         {localState === 0 && (
