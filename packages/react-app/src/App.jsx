@@ -1,16 +1,16 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
 import { useErrorBoundary } from "use-error-boundary";
-import { Alert, Button, Menu, Modal, Divider, Space, Typography } from "antd";
+import { Alert, Button, Menu, Modal, Divider, Space, Typography, Select, PageHeader } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
-import { SubmitButton, Input, InputNumber, ResetButton, FormikDebug, Form, FormItem } from "formik-antd";
+import { SubmitButton, Input, InputNumber, ResetButton, Form, FormItem } from "formik-antd";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import "./App.css";
-import { Account, Contract, Header, ThemeSwitch } from "./components";
+import { Account, Contract, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
@@ -22,7 +22,7 @@ import {
   useUserSigner,
 } from "./hooks";
 import Project from "./views/Project";
-
+const { Option } = Select;
 const { ethers } = require("ethers");
 const targetNetwork = NETWORKS.ropsten; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
@@ -101,6 +101,7 @@ function App() {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [injectedProvider, setInjectedProvider] = useState();
+  const [projectState, setProjectState] = useState("All");
   const { ErrorBoundary, didCatch, error } = useErrorBoundary();
   const [address, setAddress] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
@@ -153,7 +154,7 @@ function App() {
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div>
           <Alert
             message="⚠️ Wrong Network ID"
             description={
@@ -170,7 +171,7 @@ function App() {
       );
     } else {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div>
           <Alert
             message="⚠️ Wrong Network"
             description={
@@ -207,11 +208,7 @@ function App() {
       );
     }
   } else {
-    networkDisplay = (
-      <div style={{ zIndex: -1, position: "absolute", right: 154, top: 28, padding: 16, color: targetNetwork.color }}>
-        {targetNetwork.name}
-      </div>
-    );
+    networkDisplay = <div style={{ color: targetNetwork.color }}>{targetNetwork.name}</div>;
   }
 
   const loadWeb3Modal = useCallback(async () => {
@@ -257,7 +254,7 @@ function App() {
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
     faucetHint = (
-      <div style={{ padding: 16 }}>
+      <div>
         <Button
           type="primary"
           onClick={() => {
@@ -290,6 +287,9 @@ function App() {
     setIsModalVisible(false);
   };
 
+  function handleChange(value) {
+    setProjectState(value);
+  }
   return (
     <>
       {didCatch ? (
@@ -299,145 +299,116 @@ function App() {
       ) : (
         <ErrorBoundary>
           <div className="App">
-            <Header />
-            {networkDisplay}
-            <BrowserRouter>
-              <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-                <Menu.Item key="/">
-                  <Link
-                    onClick={() => {
-                      setRoute("/");
-                    }}
-                    to="/"
-                  >
-                    Ongoing
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="/DebugContracts">
-                  <Link
-                    onClick={() => {
-                      setRoute("/DebugContracts");
-                    }}
-                    to="/DebugContracts"
-                  >
-                    Debug Contracts
-                  </Link>
-                </Menu.Item>
-              </Menu>
-
-              <Switch>
-                <Route exact path="/DebugContracts">
-                  <Contract
-                    name="CrowdFunding"
-                    signer={userSigner}
-                    provider={localProvider}
+            <PageHeader
+              title="We Fund"
+              subTitle="Decentralised Crowdfunding"
+              extra={[
+                <div>
+                  <Account
                     address={address}
+                    localProvider={localProvider}
+                    userSigner={userSigner}
+                    mainnetProvider={mainnetProvider}
+                    price={price}
+                    web3Modal={web3Modal}
+                    loadWeb3Modal={loadWeb3Modal}
+                    logoutOfWeb3Modal={logoutOfWeb3Modal}
                     blockExplorer={blockExplorer}
                   />
-                </Route>
-                <Route exact path="/">
-                  <Button
-                    className="newProjectButton"
-                    type="primary"
-                    onClick={() => {
-                      setIsModalVisible(true);
-                    }}
-                  >
-                    Start new Project
-                  </Button>
-                  <Modal title="Create New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
-                    <Formik
-                      initialValues={{ title: "", duration: 1, description: "", goal: "" }}
-                      validationSchema={Yup.object({
-                        title: Yup.string()
-                          .required()
-                          .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
-                        duration: Yup.number().required().min(1),
-                        description: Yup.string()
-                          .required()
-                          .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
-                        goal: Yup.number().required().positive(),
-                      })}
-                      onSubmit={(values, actions) => {
-                        startNewProject(values);
-                        actions.setSubmitting(false);
-                        actions.resetForm();
-                        setIsModalVisible(false);
-                      }}
-                      render={() => (
-                        <Form id="fooId">
-                          <Form.Item required={true} name="title" label="Project Name" rules={[{ type: "string" }]}>
-                            <Input name="title" placeholder="Project Name" />
-                          </Form.Item>
-                          <FormItem
-                            validate="required"
-                            required={true}
-                            name="description"
-                            label="Project description"
-                            rules={[{ type: "string" }]}
-                          >
-                            <Input name="description" placeholder="Project description" />
-                          </FormItem>
-                          <FormItem
-                            required={true}
-                            name="duration"
-                            label="Duration in days"
-                            rules={[{ type: "number", min: 1 }]}
-                          >
-                            <InputNumber name="duration" placeholder="Duration in Days" />
-                          </FormItem>
-                          <FormItem
-                            required={true}
-                            name="goal"
-                            label="Amount (in USD)"
-                            rules={[{ type: "number", min: 0 }]}
-                          >
-                            <InputNumber name="goal" placeholder="$" />
-                          </FormItem>
-                          <Divider />
-                          <Space>
-                            <SubmitButton style={{ marginRight: "1rem" }}>Submit</SubmitButton>
-                            <ResetButton>Reset</ResetButton>
-                          </Space>
-                        </Form>
-                      )}
-                    />
-                  </Modal>
-                  <div className="card">
-                    {projectsList &&
-                      projectsList.map(project => (
-                        <Project
-                          tx={tx}
-                          price={price}
-                          parentDefinedState={0}
-                          userSigner={userSigner}
-                          localProvider={localProvider}
-                          key={project}
-                          userAddress={address}
-                          address={project}
-                        />
-                      ))}
-                  </div>
-                </Route>
-              </Switch>
-            </BrowserRouter>
+                  {faucetHint}
+                  {networkDisplay}
+                </div>,
+              ]}
+              style={{ cursor: "pointer" }}
+            />
+
+            <Button
+              className="newProjectButton"
+              type="primary"
+              onClick={() => {
+                setIsModalVisible(true);
+              }}
+            >
+              Start new Project
+            </Button>
+            <Modal title="Create New Project" visible={isModalVisible} footer={null} onCancel={handleCancel}>
+              <Formik
+                initialValues={{ title: "", duration: 1, description: "", goal: "" }}
+                validationSchema={Yup.object({
+                  title: Yup.string()
+                    .required()
+                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  duration: Yup.number().required().min(1),
+                  description: Yup.string()
+                    .required()
+                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  goal: Yup.number().required().positive(),
+                })}
+                onSubmit={(values, actions) => {
+                  startNewProject(values);
+                  actions.setSubmitting(false);
+                  actions.resetForm();
+                  setIsModalVisible(false);
+                }}
+                render={() => (
+                  <Form id="fooId">
+                    <Form.Item required={true} name="title" label="Project Name" rules={[{ type: "string" }]}>
+                      <Input name="title" placeholder="Project Name" />
+                    </Form.Item>
+                    <FormItem
+                      validate="required"
+                      required={true}
+                      name="description"
+                      label="Project description"
+                      rules={[{ type: "string" }]}
+                    >
+                      <Input name="description" placeholder="Project description" />
+                    </FormItem>
+                    <FormItem
+                      required={true}
+                      name="duration"
+                      label="Duration in days"
+                      rules={[{ type: "number", min: 1 }]}
+                    >
+                      <InputNumber name="duration" placeholder="Duration in Days" />
+                    </FormItem>
+                    <FormItem required={true} name="goal" label="Amount (in USD)" rules={[{ type: "number", min: 0 }]}>
+                      <InputNumber name="goal" placeholder="$" />
+                    </FormItem>
+                    <Divider />
+                    <Space>
+                      <SubmitButton style={{ marginRight: "1rem" }}>Submit</SubmitButton>
+                      <ResetButton>Reset</ResetButton>
+                    </Space>
+                  </Form>
+                )}
+              />
+            </Modal>
+            <Select defaultValue="All" style={{ width: 120 }} onChange={handleChange}>
+              <Option value="All">All</Option>
+              <Option value="Active">Active</Option>
+              <Option value="Completed">Completed</Option>
+              <Option value="Expired">Expired</Option>
+            </Select>
+            <div className="card">
+              {projectsList &&
+                projectsList.map(project => (
+                  <Project
+                    tx={tx}
+                    parentDefinedState={projectState}
+                    price={price}
+                    userSigner={userSigner}
+                    localProvider={localProvider}
+                    key={project}
+                    userAddress={address}
+                    address={project}
+                  />
+                ))}
+            </div>
 
             <ThemeSwitch />
 
-            <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
-              <Account
-                address={address}
-                localProvider={localProvider}
-                userSigner={userSigner}
-                mainnetProvider={mainnetProvider}
-                price={price}
-                web3Modal={web3Modal}
-                loadWeb3Modal={loadWeb3Modal}
-                logoutOfWeb3Modal={logoutOfWeb3Modal}
-                blockExplorer={blockExplorer}
-              />
-              {faucetHint}
-            </div>
+            <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}></div>
             <Typography.Text
               type="secondary"
               style={{ position: "fixed", textAlign: "right", left: 0, bottom: 0, padding: 10 }}

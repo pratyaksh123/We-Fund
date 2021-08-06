@@ -4,7 +4,7 @@ import { Account } from "../components";
 import "./Project.css";
 import { Card, Progress, Typography, Button, Modal } from "antd";
 import { CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import Countdown from "react-countdown";
+import Countdown, { calcTimeDelta } from "react-countdown";
 import { ERC20ABI } from "../contracts/external_contracts";
 import { Input } from "antd";
 import { utils } from "ethers";
@@ -12,6 +12,12 @@ import { parseEther } from "@ethersproject/units";
 import { NETWORKS } from "../constants";
 const { Search } = Input;
 const { Meta } = Card;
+
+const STATES = {
+  0: "Active",
+  1: "Expired",
+  2: "Completed",
+};
 
 const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, userAddress, price }) => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +32,7 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
       },
     },
   };
-  // TODO: increate the poll time for production
+  // TODO: increase the poll time for production
   const readContract = useContractLoader(localProvider, { externalContracts: contract_defination });
   const writeContract = useContractLoader(userSigner, { externalContracts: contract_defination });
   const title = useContractReader(readContract, "Project", "title");
@@ -87,23 +93,39 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
       contractBalance !== undefined
     ) {
       setLocalState(state);
+      if (checkCompleted(deadline)) {
+        setLocalState(1);
+      }
       setLoading(false);
     } else {
       setLoading(true);
     }
   }, [readContract, writeContract, title, description, goal, deadline, state, creator, contractBalance]);
 
+  const checkCompleted = deadline => {
+    if (deadline != undefined) {
+      const time = calcTimeDelta(deadline.toNumber() * 1000);
+      const { completed } = time;
+      console.log({ completed });
+      if (completed) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
+
   const handleCancel = () => {
     setModalVisible(false);
   };
 
   const handleRefund = () => {
-    if (state === 0 && localState === 1) {
+    if ((state === 0 && localState === 1) || state === 1) {
       tx(writeContract.Project.expireAndRefund());
     }
   };
 
-  return (
+  const Main = () => (
     <div className="project-card">
       <Card
         bordered={true}
@@ -145,8 +167,8 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
         {goal && localState === 0 && (
           <>
             <Typography.Title level={4}>
-              ${(parseFloat(utils.formatEther(contractBalance)) * price).toFixed(4)} / $
-              {(parseFloat(utils.formatEther(goal)) * price).toFixed(4)} Raised{" "}
+              ${(parseFloat(utils.formatEther(contractBalance)) * price).toFixed(2)} / $
+              {(parseFloat(utils.formatEther(goal)) * price).toFixed(2)} Raised{" "}
             </Typography.Title>
             <Progress
               status="active"
@@ -175,10 +197,14 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
         )}
         {localState === 2 && goal && (
           <>
-            <Typography.Text type="success">
+            <Typography.Text strong={true} style={{ fontSize: "1rem" }} type="success">
               <CheckCircleOutlined /> Project Funded Successfully
             </Typography.Text>
-            <Typography.Text type="primary"> ${parseFloat(utils.formatEther(goal)).toFixed(4)} raised</Typography.Text>
+            <br />
+            <Typography.Title level={4}>
+              {" "}
+              ${(parseFloat(utils.formatEther(goal)) * price).toFixed(2)} raised
+            </Typography.Title>
           </>
         )}
         {localState === 0 && (
@@ -195,6 +221,11 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
       </Card>
     </div>
   );
+  if (STATES[localState] === parentDefinedState || parentDefinedState === "All") {
+    return <Main />;
+  } else {
+    return null;
+  }
 };
 
 export default Project;
