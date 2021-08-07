@@ -254,7 +254,7 @@ function App() {
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
     faucetHint = (
-      <div>
+      <div style={{ padding: "0.5rem" }}>
         <Button
           type="primary"
           onClick={() => {

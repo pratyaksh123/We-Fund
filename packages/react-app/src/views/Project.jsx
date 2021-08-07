@@ -93,7 +93,7 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
       contractBalance !== undefined
     ) {
       setLocalState(state);
-      if (checkCompleted(deadline)) {
+      if (state !== 2 && checkCompleted(deadline)) {
         setLocalState(1);
       }
       setLoading(false);
@@ -106,7 +106,6 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
     if (deadline != undefined) {
       const time = calcTimeDelta(deadline.toNumber() * 1000);
       const { completed } = time;
-      console.log({ completed });
       if (completed) {
         return true;
       } else {

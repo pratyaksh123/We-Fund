@@ -39,12 +39,12 @@ export const NETWORKS = {
     blockExplorer: "https://rinkeby.etherscan.io/",
   },
   ropsten: {
-    name: "ropsten",
+    name: "Ropsten Testnet",
     color: "#F60D09",
     chainId: 3,
     faucet: "https://faucet.ropsten.be/",
     blockExplorer: "https://ropsten.etherscan.io/",
-    rpcUrl: `https://ropsten.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
   },
   goerli: {
     name: "goerli",
