@@ -34,7 +34,7 @@ export default function Balance(props) {
 
   // const [listening, setListening] = useState(false);
 
-  const balance = useBalance(props.provider, props.address);
+  const balance = useBalance(props.provider, props.address, 100000);
 
   let floatBalance = parseFloat("0.00");
 

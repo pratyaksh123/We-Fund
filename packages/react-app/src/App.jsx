@@ -146,7 +146,7 @@ function App() {
   // 📟 Listen for broadcast events
   // const projectsList = useEventListener(readContracts, "CrowdFunding", "NewProjectCreated", localProvider);
 
-  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects", localProvider);
+  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects");
 
   let networkDisplay = "";
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
@@ -396,12 +396,14 @@ function App() {
                   <Project
                     tx={tx}
                     parentDefinedState={projectState}
-                    price={price}
-                    userSigner={userSigner}
-                    localProvider={localProvider}
                     key={project}
                     userAddress={address}
                     address={project}
+                    localProvider={localProvider}
+                    userSigner={userSigner}
+                    mainnetProvider={mainnetProvider}
+                    price={price}
+                    blockExplorer={blockExplorer}
                   />
                 ))}
             </div>

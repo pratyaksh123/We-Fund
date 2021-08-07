@@ -9,7 +9,6 @@ import { ERC20ABI } from "../contracts/external_contracts";
 import { Input } from "antd";
 import { utils } from "ethers";
 import { parseEther } from "@ethersproject/units";
-import { NETWORKS } from "../constants";
 const { Search } = Input;
 const { Meta } = Card;
 
@@ -19,7 +18,17 @@ const STATES = {
   2: "Completed",
 };
 
-const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, userAddress, price }) => {
+const Project = ({
+  address,
+  localProvider,
+  parentDefinedState,
+  tx,
+  userSigner,
+  userAddress,
+  price,
+  mainnetProvider,
+  blockExplorer,
+}) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const contract_defination = {
@@ -37,7 +46,7 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
   const writeContract = useContractLoader(userSigner, { externalContracts: contract_defination });
   const title = useContractReader(readContract, "Project", "title");
   const description = useContractReader(readContract, "Project", "description");
-  const goal = useContractReader(readContract, "Project", "goal");
+  const goal = useContractReader(readContract, "Project", "goal", 10000);
   const deadline = useContractReader(readContract, "Project", "deadline");
   const state = useContractReader(readContract, "Project", "state");
   const [localState, setLocalState] = useState(state);
@@ -79,7 +88,6 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
     const formatedValue = value / price;
     tx(writeContract.Project.contribute({ value: parseEther(formatedValue.toFixed(4)) }));
   };
-  // console.log({ title, description, goal, deadline, state, creator, contractBalance });
   useEffect(() => {
     if (
       readContract !== undefined &&
@@ -138,8 +146,10 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
                 <Account
                   address={address}
                   localProvider={localProvider}
+                  userSigner={userSigner}
+                  mainnetProvider={mainnetProvider}
                   price={price}
-                  blockExplorer={NETWORKS.ropsten.blockExplorer}
+                  blockExplorer={blockExplorer}
                 />
               </div>
             )}
@@ -153,8 +163,10 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
                 <Account
                   address={creator}
                   localProvider={localProvider}
+                  userSigner={userSigner}
+                  mainnetProvider={mainnetProvider}
                   price={price}
-                  blockExplorer={NETWORKS.ropsten.blockExplorer}
+                  blockExplorer={blockExplorer}
                 />
               </div>
             )}

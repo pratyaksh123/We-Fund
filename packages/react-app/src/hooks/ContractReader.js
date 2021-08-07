@@ -65,13 +65,6 @@ export default function useContractReader(contracts, contractName, functionName,
     }
   };
 
-  // Only pass a provider to watch on a block if we have a contract and no PollTime
-  useOnBlock(contracts && contracts[contractName] && adjustPollTime === 0 && contracts[contractName].provider, () => {
-    if (contracts && contracts[contractName] && adjustPollTime === 0) {
-      updateValue();
-    }
-  });
-
   // Use a poller if a pollTime is provided
   usePoller(
     async () => {
