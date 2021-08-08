@@ -41,7 +41,7 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
   const state = useContractReader(readContract, "Project", "state");
   const [localState, setLocalState] = useState(state);
   const creator = useContractReader(readContract, "Project", "owner");
-  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
+  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address, 30000);
   const contributorBalance = useContractReader(readContract, "Project", "fetchContributors", [userAddress]);
 
   const ProjectExpiredComponent = () => {
