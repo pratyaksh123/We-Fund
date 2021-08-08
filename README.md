@@ -3,5 +3,6 @@
 
 [![Deploy to Surge](https://github.com/pratyaksh123/We-Fund/actions/workflows/deploy.yaml/badge.svg)](https://github.com/pratyaksh123/We-Fund/actions/workflows/deploy.yaml)
 ## Decentralised Crowdfunding
-> -  App Deployed at https://we-fund.surge.sh/
->  - Contracts are currently deployed on the Polygon Mumbai Testnet.
+>  -  App Deployed at https://we-fund.surge.sh/
+>  - Contracts are deployed on Ropsten Testnet.
+>  - More Information about this on [Devfolio](https://devfolio.co/submissions/we-fund-e079)
