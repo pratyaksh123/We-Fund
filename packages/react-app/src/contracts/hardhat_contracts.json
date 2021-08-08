@@ -5,7 +5,80 @@
       "chainId": "3",
       "contracts": {
         "CrowdFunding": {
-          "address": "0xa033d03BC8940f93b31bFb0A39e2bf41C2F39846",
+          "address": "0x616F6b8C208D82422B3Aa1584Bbf55D00E91D92C",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "goal",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "title",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "description",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "durationInDays",
+                  "type": "uint256"
+                }
+              ],
+              "name": "createNewProject",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "projects",
+              "outputs": [
+                {
+                  "internalType": "contract Project",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "returnAllProjects",
+              "outputs": [
+                {
+                  "internalType": "contract Project[]",
+                  "name": "",
+                  "type": "address[]"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "80001": {
+    "mumbai": {
+      "name": "mumbai",
+      "chainId": "80001",
+      "contracts": {
+        "CrowdFunding": {
+          "address": "0x0dAbcb50b6865cE565F885Adf568c21F84E284c7",
           "abi": [
             {
               "anonymous": false,

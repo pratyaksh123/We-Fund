@@ -14,16 +14,10 @@ contract Project is Ownable {
   // State Variables
   uint public goal; // amount in ether
   string public title;
-  uint public completeAt;
   uint public deadline;
   string public description;
   State public state = State.Ongoing;
   mapping (address=>uint) contributors; // contributors
-  event ProjectCompleted(address indexed contributor, uint amount, uint goal);
-  event ProjectExpired(address indexed contributor, uint amount);
-  event FundingRecieved(address indexed contributor, uint amount, uint currentBalance);
-  event FundingRefunded(address indexed contributor, uint amount, uint currentBalance);
-  event CreatorPaid(address recipient, uint amount);
 
   constructor(uint _goal, string memory _title, string memory _description, address _creator, uint _deadline) {
     goal = _goal;
@@ -39,10 +33,9 @@ contract Project is Ownable {
   }
 
   function contribute() external inState(State.Ongoing) payable {
-    uint balance = address(this).balance;
     require(msg.sender != owner());
     contributors[msg.sender] = contributors[msg.sender].add(msg.value);
-    emit FundingRecieved(msg.sender, msg.value, balance);
+    // emit FundingRecieved(msg.sender, msg.value, balance);
     isComplete();
   }
 
@@ -50,21 +43,21 @@ contract Project is Ownable {
     uint balance = address(this).balance;
     if (balance >= goal){
       state = State.Completed;
-      emit ProjectCompleted(msg.sender, balance, goal);
-      completeAt = block.timestamp;
+      // emit ProjectCompleted(msg.sender, balance, goal);
       payCreator();
     }
     else if(block.timestamp > deadline){
       state = State.Expired;
-      completeAt = block.timestamp;
     }
   }
 
   function payCreator() internal inState(State.Completed) returns(bool) {
     address payable creator = payable(owner());
     uint balance = address(this).balance;
+    // Maybe the balance exceeded the goal, so we need to update the goal.
+    goal = balance;
     if (creator.send(balance)){
-      emit CreatorPaid(creator, balance);
+      // emit CreatorPaid(creator, balance);
       return true;
     }
     return false;
@@ -83,7 +76,7 @@ contract Project is Ownable {
     uint amountToRefund = contributors[msg.sender];
     contributors[msg.sender] = 0;
     if(payable(msg.sender).send(amountToRefund)){
-      emit FundingRefunded(msg.sender, amountToRefund, address(this).balance);
+      // emit FundingRefunded(msg.sender, amountToRefund, address(this).balance);
     }else{
       contributors[msg.sender] = amountToRefund;
     }
@@ -93,5 +86,4 @@ contract Project is Ownable {
     state = State.Expired;
     refund();
   }
-
 }

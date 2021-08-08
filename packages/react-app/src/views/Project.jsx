@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useContractLoader, useContractReader, useBalance } from "../hooks";
-import { Account } from "../components";
+import { Address } from "../components";
 import "./Project.css";
 import { Card, Progress, Typography, Button, Modal } from "antd";
 import { CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -18,17 +18,7 @@ const STATES = {
   2: "Completed",
 };
 
-const Project = ({
-  address,
-  localProvider,
-  parentDefinedState,
-  tx,
-  userSigner,
-  userAddress,
-  price,
-  mainnetProvider,
-  blockExplorer,
-}) => {
+const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, userAddress, price, blockExplorer }) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const contract_defination = {
@@ -46,12 +36,12 @@ const Project = ({
   const writeContract = useContractLoader(userSigner, { externalContracts: contract_defination });
   const title = useContractReader(readContract, "Project", "title");
   const description = useContractReader(readContract, "Project", "description");
-  const goal = useContractReader(readContract, "Project", "goal", 10000);
+  const goal = useContractReader(readContract, "Project", "goal", 5000);
   const deadline = useContractReader(readContract, "Project", "deadline");
-  const state = useContractReader(readContract, "Project", "state");
+  const state = useContractReader(readContract, "Project", "state", 5000);
   const [localState, setLocalState] = useState(state);
   const creator = useContractReader(readContract, "Project", "owner");
-  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
+  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address, 5000);
   const contributorBalance = useContractReader(readContract, "Project", "fetchContributors", [userAddress]);
 
   const ProjectExpiredComponent = () => {
@@ -81,6 +71,11 @@ const Project = ({
   };
 
   const fund = value => {
+    value = parseFloat(value);
+    if (isNaN(value) || value === 0) {
+      alert("Contribution amount cannot be empty");
+      return;
+    }
     if (creator == userAddress) {
       alert("You cannot fund your own project");
       return;
@@ -125,7 +120,6 @@ const Project = ({
   const handleCancel = () => {
     setModalVisible(false);
   };
-
   const handleRefund = () => {
     if ((state === 0 && localState === 1) || state === 1) {
       tx(writeContract.Project.expireAndRefund());
@@ -140,17 +134,10 @@ const Project = ({
         hoverable={true}
         title={
           <div>
-            {creator && (
+            {address && (
               <div>
-                <Typography.Text>Contract Address</Typography.Text>
-                <Account
-                  address={address}
-                  localProvider={localProvider}
-                  userSigner={userSigner}
-                  mainnetProvider={mainnetProvider}
-                  price={price}
-                  blockExplorer={blockExplorer}
-                />
+                <Typography.Text>Contract Address </Typography.Text>
+                <Address address={address} blockExplorer={blockExplorer} />
               </div>
             )}
           </div>
@@ -159,15 +146,8 @@ const Project = ({
           <div>
             {creator && (
               <div>
-                <Typography.Text>Created By</Typography.Text>
-                <Account
-                  address={creator}
-                  localProvider={localProvider}
-                  userSigner={userSigner}
-                  mainnetProvider={mainnetProvider}
-                  price={price}
-                  blockExplorer={blockExplorer}
-                />
+                <Typography.Text>Created By </Typography.Text>
+                <Address address={creator} blockExplorer={blockExplorer} />
               </div>
             )}
           </div>
@@ -212,14 +192,14 @@ const Project = ({
               <CheckCircleOutlined /> Project Funded Successfully
             </Typography.Text>
             <br />
-            <Typography.Title level={4}>
+            <Typography.Title level={5}>
               {" "}
               ${(parseFloat(utils.formatEther(goal)) * price).toFixed(2)} raised
             </Typography.Title>
           </>
         )}
         {localState === 0 && (
-          <Search placeholder="Input Amount in USD" allowClear enterButton="Fund" size="small" onSearch={fund} />
+          <Search placeholder="Input Amount in USD" enterButton="Fund" size="small" onSearch={fund} />
         )}
         <Modal title="Claim your refund" visible={isModalVisible} footer={null} onCancel={handleCancel}>
           Total contributed by you - {contributorBalance && <p>${utils.formatEther(contributorBalance)}</p>}

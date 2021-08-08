@@ -1,16 +1,15 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletLink from "walletlink";
 import { useErrorBoundary } from "use-error-boundary";
-import { Alert, Button, Menu, Modal, Divider, Space, Typography, Select, PageHeader } from "antd";
+import { Alert, Button, Modal, Divider, Space, Typography, Select, PageHeader, BackTop } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
-import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import { SubmitButton, Input, InputNumber, ResetButton, Form, FormItem } from "formik-antd";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import "./App.css";
-import { Account, Contract, ThemeSwitch } from "./components";
+import { Account, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
@@ -29,10 +28,10 @@ const targetNetwork = NETWORKS.ropsten; // <------- select your target frontend 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
 const NETWORKCHECK = true;
-
-const scaffoldEthProvider = navigator.onLine
-  ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
-  : null;
+const scaffoldEthProvider = undefined;
+// const scaffoldEthProvider = navigator.onLine
+//   ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
+//   : null;
 const mainnetInfura = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
   : null;
@@ -135,7 +134,7 @@ function App() {
   const faucetTx = Transactor(localProvider, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address);
+  const yourLocalBalance = useBalance(localProvider, address, 10000);
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider);
@@ -146,7 +145,7 @@ function App() {
   // 📟 Listen for broadcast events
   // const projectsList = useEventListener(readContracts, "CrowdFunding", "NewProjectCreated", localProvider);
 
-  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects");
+  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects", 10000);
 
   let networkDisplay = "";
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
@@ -273,6 +272,7 @@ function App() {
 
   const startNewProject = ({ goal, title, duration, description }) => {
     const formattedGoal = goal / price;
+
     tx(
       writeContracts.CrowdFunding.createNewProject(
         ethers.utils.parseEther(formattedGoal.toString()),
@@ -280,6 +280,13 @@ function App() {
         description,
         duration,
       ),
+    ).then(
+      t => {
+        console.log(t);
+      },
+      e => {
+        console.error(e);
+      },
     );
   };
 
@@ -298,6 +305,7 @@ function App() {
         </Typography.Title>
       ) : (
         <ErrorBoundary>
+          <BackTop />
           <div className="App">
             <PageHeader
               title="We Fund"
@@ -335,13 +343,9 @@ function App() {
               <Formik
                 initialValues={{ title: "", duration: 1, description: "", goal: "" }}
                 validationSchema={Yup.object({
-                  title: Yup.string()
-                    .required()
-                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  title: Yup.string().required(),
                   duration: Yup.number().required().min(1),
-                  description: Yup.string()
-                    .required()
-                    .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+                  description: Yup.string().required(),
                   goal: Yup.number().required().positive(),
                 })}
                 onSubmit={(values, actions) => {
@@ -411,19 +415,6 @@ function App() {
             <ThemeSwitch />
 
             <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}></div>
-            <Typography.Text
-              type="secondary"
-              style={{ position: "fixed", textAlign: "right", left: 0, bottom: 0, padding: 10 }}
-            >
-              Icons made by{" "}
-              <a href="https://www.freepik.com" title="Freepik">
-                Freepik
-              </a>{" "}
-              from{" "}
-              <a href="https://www.flaticon.com/" title="Flaticon">
-                www.flaticon.com
-              </a>
-            </Typography.Text>
           </div>
         </ErrorBoundary>
       )}
