@@ -1,11 +1,11 @@
 // MY INFURA_ID, SWAP IN YOURS FROM https://infura.io/dashboard/ethereum
-export const INFURA_ID = "d703a678f58c4180ac0acf1cd344ded8";
+export const INFURA_ID = "560590f7bd8c472e9534b7b343edf478";
 
 // MY ETHERSCAN_ID, SWAP IN YOURS FROM https://etherscan.io/myapikey
-export const ETHERSCAN_KEY = "PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8";
+export const ETHERSCAN_KEY = "7WDXZ6CHCVRDFY1WVSYFJAZZ7TKX5QI35K";
 
 // BLOCKNATIVE ID FOR Notify.js:
-export const BLOCKNATIVE_DAPPID = "0b58206a-f3c0-4701-a62f-73c7243e8c77";
+export const BLOCKNATIVE_DAPPID = "512a80e1-fbd5-490f-a7af-5f504eb0859d";
 
 export const NETWORKS = {
   localhost: {
@@ -39,7 +39,7 @@ export const NETWORKS = {
     blockExplorer: "https://rinkeby.etherscan.io/",
   },
   ropsten: {
-    name: "ropsten",
+    name: "Ropsten Testnet",
     color: "#F60D09",
     chainId: 3,
     faucet: "https://faucet.ropsten.be/",
