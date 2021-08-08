@@ -257,10 +257,8 @@ function App() {
         <Button
           type="primary"
           onClick={() => {
-            faucetTx({
-              to: address,
-              value: ethers.utils.parseEther("1"),
-            });
+            // open new tab with faucet website
+            window.open("https://faucet.dimensions.network/", "_blank");
             setFaucetClicked(true);
           }}
         >
