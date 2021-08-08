@@ -130,11 +130,8 @@ function App() {
   // The transactor wraps transactions and provides notificiations
   const tx = Transactor(userSigner, gasPrice);
 
-  // Faucet Tx can be used to send funds from the faucet
-  const faucetTx = Transactor(localProvider, gasPrice);
-
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address, 10000);
+  const yourLocalBalance = useBalance(localProvider, address, 5000);
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider);
@@ -145,7 +142,7 @@ function App() {
   // 📟 Listen for broadcast events
   // const projectsList = useEventListener(readContracts, "CrowdFunding", "NewProjectCreated", localProvider);
 
-  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects", 10000);
+  const projectsList = useContractReader(readContracts, "CrowdFunding", "returnAllProjects");
 
   let networkDisplay = "";
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
@@ -281,9 +278,11 @@ function App() {
     ).then(
       t => {
         console.log(t);
+        // reload window
+        window.location.reload();
       },
       e => {
-        console.error(e);
+        alert(e);
       },
     );
   };

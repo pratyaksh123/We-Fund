@@ -36,12 +36,12 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
   const writeContract = useContractLoader(userSigner, { externalContracts: contract_defination });
   const title = useContractReader(readContract, "Project", "title");
   const description = useContractReader(readContract, "Project", "description");
-  const goal = useContractReader(readContract, "Project", "goal", 5000);
+  const goal = useContractReader(readContract, "Project", "goal");
   const deadline = useContractReader(readContract, "Project", "deadline");
-  const state = useContractReader(readContract, "Project", "state", 5000);
+  const state = useContractReader(readContract, "Project", "state");
   const [localState, setLocalState] = useState(state);
   const creator = useContractReader(readContract, "Project", "owner");
-  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address, 5000);
+  const contractBalance = useBalance(localProvider, readContract && readContract.Project.address);
   const contributorBalance = useContractReader(readContract, "Project", "fetchContributors", [userAddress]);
 
   const ProjectExpiredComponent = () => {
@@ -73,7 +73,7 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
   const fund = value => {
     value = parseFloat(value);
     if (isNaN(value) || value === 0) {
-      alert("Contribution amount cannot be empty");
+      alert("Contribution amount not valid");
       return;
     }
     if (creator == userAddress) {
@@ -81,7 +81,13 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
       return;
     }
     const formatedValue = value / price;
-    tx(writeContract.Project.contribute({ value: parseEther(formatedValue.toFixed(4)) }));
+    tx(writeContract.Project.contribute({ value: parseEther(formatedValue.toFixed(4)) }))
+      .then(() => {
+        window.location.reload();
+      })
+      .catch(e => {
+        alert(e);
+      });
   };
   useEffect(() => {
     if (
@@ -122,7 +128,13 @@ const Project = ({ address, localProvider, parentDefinedState, tx, userSigner, u
   };
   const handleRefund = () => {
     if ((state === 0 && localState === 1) || state === 1) {
-      tx(writeContract.Project.expireAndRefund());
+      tx(writeContract.Project.expireAndRefund())
+        .then(() => {
+          window.location.reload();
+        })
+        .catch(e => {
+          alert(e);
+        });
     }
   };
 
