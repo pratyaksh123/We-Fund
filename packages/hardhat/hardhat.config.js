@@ -74,7 +74,7 @@ module.exports = {
       },
     },
     ropsten: {
-      url: "https://ropsten.infura.io/v3/d703a678f58c4180ac0acf1cd344ded8", // <---- YOUR INFURA ID! (or it won't work)
+      url: "https://ropsten.infura.io/v3/560590f7bd8c472e9534b7b343edf478", // <---- YOUR INFURA ID! (or it won't work)
       accounts: {
         mnemonic: mnemonic(),
       },

@@ -5,7 +5,7 @@
       "chainId": "3",
       "contracts": {
         "CrowdFunding": {
-          "address": "0xf3AacD2BfeDA92C9DeaDFa41F602945d7140B5A8",
+          "address": "0xdd56D649a0C1dd6fD78E4dbf0C2b84d3afAEc1a6",
           "abi": [
             {
               "inputs": [
